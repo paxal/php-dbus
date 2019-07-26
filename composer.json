@@ -1,0 +1,25 @@
+{
+    "name": "paxal/php-dbus",
+    "description": "DBUS PHP Bindings",
+    "type": "library",
+    "require": {
+        "php": "^7.4|^8.0",
+        "ext-FFI": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "":"lib"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cyril Pascal",
+            "email": "cyril.pascal_github@m4x.org"
+        }
+    ],
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.15"
+    }
+}

@@ -1,0 +1,3 @@
+# source .php74
+alias php=php7.4
+alias composer="php7.4 $(which composer)"
