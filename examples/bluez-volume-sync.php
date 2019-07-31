@@ -1,5 +1,7 @@
 <?php
 
+const BLUEZ_TO_PA_FACTOR = 512;
+
 require_once __DIR__.'/../vendor/autoload.php';
 $ffi = require_once __DIR__.'/../load.php';
 
@@ -9,7 +11,7 @@ $args = $ffi->new('struct DBusMessageIter');
 $conn = $ffi->dbus_bus_get(DBus::BUS_SYSTEM, FFI::addr($err));
 
 $ffi->dbus_bus_add_match($conn,
-    "arg0=org.bluez.MediaPlayer1",
+    "arg0=org.bluez.MediaTransport1",
     FFI::addr($err));
 $ffi->dbus_connection_flush($conn);
 if ($ffi->dbus_error_is_set(FFI::addr($err))) {
@@ -58,22 +60,17 @@ while (true) {
     }
 
     $objectType = $arguments[0];
-    if ($objectType !== 'org.bluez.MediaPlayer1') {
+    if ($objectType !== 'org.bluez.MediaTransport1') {
         continue;
     }
 
-    $track = $arguments[1]['Track'] ?? null;
-    if (null === $track) {
+    $volume = $arguments[1]['Volume'] ?? null;
+    if (null === $volume) {
         continue;
     }
 
-    $item = $track['Item'] ?? null;
-    if (null === $item) {
-        continue;
-    }
-
-    if ($item !== $lastItem) {
-        $lastItem = $item;
-        exec('notify-send '.join(' ', array_map('escapeshellarg', ['-t', '5000', '-a', 'Music', $track['Title'], $track['Artist'].' - '.$track['Album']])));
-    }
+    $addr = preg_replace('@^.*/dev_(.*?)(/.*)$@', '$1', $message->path);
+    $paVolume = BLUEZ_TO_PA_FACTOR * (int) $volume;
+    echo "Set volume to ".round($paVolume / 65535 * 100).'%'.PHP_EOL;
+    exec("pactl set-source-volume bluez_source.{$addr}.a2dp_source {$paVolume}");
 }
