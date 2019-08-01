@@ -1,6 +1,6 @@
 <?php
 
-const BLUEZ_TO_PA_FACTOR = 512;
+const BLUEZ_TO_PA_FACTOR = 65535/127;
 
 require_once __DIR__.'/../vendor/autoload.php';
 $ffi = require_once __DIR__.'/../load.php';
@@ -15,7 +15,7 @@ $ffi->dbus_bus_add_match($conn,
     FFI::addr($err));
 $ffi->dbus_connection_flush($conn);
 if ($ffi->dbus_error_is_set(FFI::addr($err))) {
-    fprintf(stderr, "Match Error (%s)\n", $err->message);
+    fprintf(STDERR, "Match Error (%s)\n", $err->message);
     exit(1);
 }
 
@@ -70,7 +70,7 @@ while (true) {
     }
 
     $addr = preg_replace('@^.*/dev_(.*?)(/.*)$@', '$1', $message->path);
-    $paVolume = BLUEZ_TO_PA_FACTOR * (int) $volume;
+    $paVolume = (int) (BLUEZ_TO_PA_FACTOR * (int) $volume);
     echo "Set volume to ".round($paVolume / 65535 * 100).'%'.PHP_EOL;
     exec("pactl set-source-volume bluez_source.{$addr}.a2dp_source {$paVolume}");
 }
