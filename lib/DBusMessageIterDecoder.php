@@ -2,22 +2,36 @@
 
 declare(strict_types=1);
 
+namespace Paxal\DBus;
+
+use FFI;
+use PaxalDbusPhp;
+use function array_shift;
+use function array_values;
+use function assert;
+use function ord;
+
 final class DBusMessageIterDecoder
 {
-    /**
-     * @var FFI
-     */
+    /** @var PaxalDbusPhp|FFI */
     private $ffi;
 
-    public function __construct(FFI $ffi)
+    /**
+     * @param PaxalDbusPhp|FFI $ffi
+     */
+    public function __construct($ffi)
     {
         $this->ffi = $ffi;
     }
 
-    public function decode(FFI\CData $args): array
+    /**
+     * @return mixed[]
+     */
+    public function decode(FFI\CData $args) : array
     {
+        assert($this->ffi instanceof PaxalDbusPhp);
         $result = [];
-        $i = 0;
+        $i      = 0;
         do {
             $type = $this->ffi->dbus_message_iter_get_arg_type(FFI::addr($args));
             switch ($type) {
@@ -57,15 +71,15 @@ final class DBusMessageIterDecoder
                     break;
 
                 case DBus::TYPE_BYTE:
-                    $result[] = ord($this->cdata('char', $args));
+                    $result[] = ord((string) $this->cdata('char', $args));
                     break;
 
                 case DBus::TYPE_DICT_ENTRY:
                     $sub = $this->ffi->new('struct DBusMessageIter');
                     $this->ffi->dbus_message_iter_recurse(FFI::addr($args), FFI::addr($sub));
-                    $pair = $this->decode($sub);
+                    $pair          = $this->decode($sub);
                     [$key, $value] = array_values($pair);
-                    $result[$key] = $value;
+                    $result[$key]  = $value;
                     break;
 
                 case DBus::TYPE_ARRAY:
@@ -78,7 +92,7 @@ final class DBusMessageIterDecoder
                     $sub = $this->ffi->new('struct DBusMessageIter');
                     $this->ffi->dbus_message_iter_recurse(FFI::addr($args), FFI::addr($sub));
                     $subResult = $this->decode($sub);
-                    $result[] = array_shift($subResult);
+                    $result[]  = array_shift($subResult);
                     break;
 
                 case 0:
@@ -93,12 +107,15 @@ final class DBusMessageIterDecoder
         return $result;
     }
 
+    /**
+     * @return int|float|string
+     */
     private function cdata(string $type, FFI\CData $args)
     {
+        assert($this->ffi instanceof PaxalDbusPhp);
         $w = FFI::new($type);
         $this->ffi->dbus_message_iter_get_basic(FFI::addr($args), FFI::addr($w));
-        $value = $w->cdata;
 
-        return $value;
+        return $w->cdata;
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Type;
+namespace Paxal\DBus\Type;
 
 final class DBusObjectPath
 {
@@ -13,7 +13,7 @@ final class DBusObjectPath
         $this->data = $data;
     }
 
-    public function getData(): string
+    public function getData() : string
     {
         return $this->data;
     }

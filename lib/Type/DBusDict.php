@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Type;
+namespace Paxal\DBus\Type;
 
 final class DBusDict
 {
@@ -10,18 +10,24 @@ final class DBusDict
 
     private array $elements;
 
+    /**
+     * @param array<string, mixed> $elements
+     */
     public function __construct(int $type, array $elements)
     {
-        $this->type = $type;
+        $this->type     = $type;
         $this->elements = $elements;
     }
 
-    public function getType(): int
+    public function getType() : int
     {
         return $this->type;
     }
 
-    public function getElements(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function getElements() : array
     {
         return $this->elements;
     }

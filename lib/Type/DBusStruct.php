@@ -2,20 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Type;
+namespace Paxal\DBus\Type;
 
 final class DBusStruct
 {
     private string $signature;
     private array $data;
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(string $signature, array $data)
     {
         $this->signature = $signature;
-        $this->data = $data;
+        $this->data      = $data;
     }
 
-    public function getData(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function getData() : array
     {
         return $this->data;
     }

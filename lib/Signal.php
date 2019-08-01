@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+namespace Paxal\DBus;
+
+use Exception;
+
 final class Signal
 {
     private DBus $dbus;
@@ -11,37 +15,28 @@ final class Signal
 
     public function __construct(DBus $dbus, string $object, string $interface, string $signal)
     {
-        $this->dbus = $dbus;
-        $this->object = $object;
+        $this->dbus      = $dbus;
+        $this->object    = $object;
         $this->interface = $interface;
-        $this->signal = $signal;
+        $this->signal    = $signal;
     }
 
-    public function matches(string $interface, string $method): bool
+    public function matches(string $interface, string $method) : bool
     {
-        throw new \Exception();
+        throw new Exception();
     }
 
-    /**
-     * @return DBus
-     */
-    public function getDbus(): DBus
+    public function getDbus() : DBus
     {
         return $this->dbus;
     }
 
-    /**
-     * @return string
-     */
-    public function getObject(): string
+    public function getObject() : string
     {
         return $this->object;
     }
 
-    /**
-     * @return string
-     */
-    public function getInterface(): string
+    public function getInterface() : string
     {
         return $this->interface;
     }

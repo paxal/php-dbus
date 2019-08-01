@@ -9,7 +9,7 @@
     },
     "autoload": {
         "psr-4": {
-            "":"lib"
+            "Paxal\\DBus\\":"lib"
         }
     },
     "license": "MIT",
@@ -20,6 +20,8 @@
         }
     ],
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.15"
+        "doctrine/coding-standard": "^6.0",
+        "phpstan/phpstan": "^0.11.12",
+        "phpstan/phpstan-strict-rules": "^0.11.1"
     }
 }
