@@ -72,12 +72,14 @@ final class DBus
     public const TYPE_DICT_ENTRY_AS_STRING = 'e';
 
     /** @var PaxalDbusPhp */
-    public static FFI $ffi;
+    public static $ffi;
     private CData $conn;
+    private static DBusMessageIterDecoder $decoder;
 
     private static function init() : void
     {
-        self::$ffi = require __DIR__ . '/../load.php';
+        self::$ffi     = require __DIR__ . '/../load.php';
+        self::$decoder = new DBusMessageIterDecoder(self::$ffi);
     }
 
     private function __construct(FFI\CData $conn)
@@ -130,8 +132,7 @@ final class DBus
             return null;
         }
 
-        $args    = self::$ffi->new('struct DBusMessageIter');
-        $decoder = new DBusMessageIterDecoder(self::$ffi);
+        $args = self::$ffi->new('struct DBusMessageIter');
         if (! self::$ffi->dbus_message_iter_init($msg, FFI::addr($args))) {
             trigger_error("Message has no arguments!\n", E_USER_WARNING);
 
@@ -142,7 +143,7 @@ final class DBus
         $message->interface = self::$ffi->dbus_message_get_interface($msg);
         $message->path      = self::$ffi->dbus_message_get_path($msg);
         $message->member    = self::$ffi->dbus_message_get_member($msg);
-        $message->arguments = $decoder->decode($args);
+        $message->arguments = self::$decoder->decode($args);
 
         self::$ffi->dbus_message_unref($msg);
 

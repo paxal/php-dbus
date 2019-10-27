@@ -3,58 +3,23 @@
 declare(strict_types=1);
 
 use Paxal\DBus\DBus;
-use Paxal\DBus\DBusMessageIterDecoder;
-use Paxal\DBus\Message;
 
 const BLUEZ_TO_PA_FACTOR = 65535/127;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 $ffi = require_once __DIR__ . '/../load.php';
 
-$err = $ffi->new('struct DBusError');
-$ffi->dbus_error_init(FFI::addr($err));
-$args = $ffi->new('struct DBusMessageIter');
-$conn = $ffi->dbus_bus_get(DBus::BUS_SYSTEM, FFI::addr($err));
+$dbus = DBus::connect(DBus::BUS_SYSTEM);
+$dbus->addMatch('arg0=org.bluez.MediaTransport1');
 
-$ffi->dbus_bus_add_match(
-    $conn,
-    'arg0=org.bluez.MediaTransport1',
-    FFI::addr($err)
-);
-$ffi->dbus_connection_flush($conn);
-if ($ffi->dbus_error_is_set(FFI::addr($err))) {
-    fprintf(STDERR, "Match Error (%s)\n", $err->message);
-    exit(1);
-}
-
-$decoder = new DBusMessageIterDecoder($ffi);
-
-$lastItem = null;
 while (true) {
-    $ffi->dbus_connection_read_write($conn, 0);
-    $msg = $ffi->dbus_connection_pop_message($conn);
-    $end = microtime(true);
-
-    // loop again if we haven't read a message
-    if ($msg === null) {
-        usleep(100000);
+    $message = $dbus->waitLoop();
+    if ($message === null) {
+        usleep(10);
         continue;
     }
 
-    if (! $ffi->dbus_message_iter_init($msg, FFI::addr($args))) {
-        error_log("Message has no arguments!\n");
-        continue;
-    }
-
-    $message            = new Message();
-    $message->interface = $ffi->dbus_message_get_interface($msg);
-    $message->path      = $ffi->dbus_message_get_path($msg);
-    $message->member    = $ffi->dbus_message_get_member($msg);
-    $message->arguments = $decoder->decode($args);
-
-    $ffi->dbus_message_unref($msg);
-
-    if (strpos($message->path, '/org/bluez') !== 0) {
+    if (strpos($message->path ?? '', '/org/bluez') !== 0) {
         continue;
     }
 
@@ -77,7 +42,7 @@ while (true) {
         continue;
     }
 
-    $addr     = preg_replace('@^.*/dev_(.*?)(/.*)$@', '$1', $message->path);
+    $addr     = preg_replace('@^.*/dev_(.*?)(/.*)$@', '$1', (string) $message->path);
     $paVolume = (int) (BLUEZ_TO_PA_FACTOR * (int) $volume);
     echo 'Set volume to ' . round($paVolume / 65535 * 100) . '%' . PHP_EOL;
     exec(sprintf('pactl set-source-volume bluez_source.%s.a2dp_source %s', $addr, $paVolume));

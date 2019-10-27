@@ -11,7 +11,12 @@ vendor/autoload.php: composer.lock
 	$(COMPOSER) install
 
 phpstan: vendor/bin/phpstan
-	$(PHP) vendor/bin/phpstan analyse -l max lib -a include/dbus-php.php
+	$(PHP) vendor/bin/phpstan analyse -l max -a  lib/ examples/
 
 phpcs phpcbf: vendor/bin/$@
 	$(PHP) vendor/bin/$@
+
+examples:
+	(echo $(PHP) examples/bluez-music-notify.php ; echo $(PHP) examples/bluez-volume-sync.php) | parallel -u
+
+.PHONY: examples
